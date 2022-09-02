@@ -415,7 +415,7 @@ namespace PrjOutbound.Controllers
 
                 StockList clist = new StockList();
                 clist.AccessToken = AccessToken;
-                clist.ObjectType = "vanStock";
+                clist.ObjectType = "warehouseStock";
 
                 #region VoucherDetails
                 string strsql = $@"select  i.iproduct,u.sCode productUnit,b.sBatchNo,case when b.iExpiryDate=0 then '0'  else convert(varchar,dbo.IntToDate(b.iExpiryDate),23) end [ExpiryDate],convert(varchar,dbo.IntToDate(h.iDate),23) [TransactionDate]  from tcore_header_0 h join tcore_data_0 d on d.iHeaderId=h.iheaderid
@@ -454,9 +454,16 @@ namespace PrjOutbound.Controllers
                         StockDetailsData c = new StockDetailsData();
                         if (dstock.Tables.Count > 0)
                         {
-                            if (Convert.ToDecimal(dstock.Tables[0].Rows[0]["Quantity"]) > 0)
+                            if (dstock.Tables[0].Rows.Count>0)
                             {
-                                c.Qty = Convert.ToDecimal(dstock.Tables[0].Rows[0]["Quantity"]);
+                                if (Convert.ToDecimal(dstock.Tables[0].Rows[0]["Quantity"]) > 0)
+                                {
+                                    c.Qty = Convert.ToDecimal(dstock.Tables[0].Rows[0]["Quantity"]);
+                                }
+                                else
+                                {
+                                    c.Qty = 0;
+                                }
                             }
                             else
                             {
@@ -471,14 +478,13 @@ namespace PrjOutbound.Controllers
                                 c.Qty = 0;
                             }
                         }
-
                         var CurrentDate = Convert.ToDateTime(row["TransactionDate"]).ToString();
 
                         c.SourceStockCode = "";
                         c.DestinationStockCode = StockOutlet;
                         c.ProductId = Convert.ToInt32(row["iproduct"]);
                         c.ProductUnit = Convert.ToString(row["Productunit"]);
-                        c.BatchId = Convert.ToString(row["sBatchNo"]);
+                        c.BatchId = row["sBatchNo"] == null?null:Convert.ToString(row["sBatchNo"]);
                         if (Convert.ToString(row["ExpiryDate"]) == "0")
                         {
                             c.ExpiryDate = null;

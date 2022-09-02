@@ -18,6 +18,7 @@ namespace PrjOutbound.Models
         public int FldId { get; set; }
         public string FldCode { get; set; }
         public string FldName { get; set; }
+        public int FldType { get; set; }
     }
 
     public class Result

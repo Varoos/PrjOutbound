@@ -36,11 +36,11 @@ namespace PrjOutbound.Models
             public int FldBranchId { get; set; }
             public int FldCategoryId  { get; set; }
             public string FldActivityId { get; set; }
-            public string FldAdminAreaId { get; set; }
+            //public string FldAdminAreaId { get; set; }
             public string FldWorkingAreaCode { get; set; }
             public int FldPriceBookId { get; set; }
             public int FldCurrencyId { get; set; }
-            public string FldRouteId { get; set; }
+            //public string FldRouteId { get; set; }
         }   
     }
 }

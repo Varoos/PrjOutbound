@@ -67,6 +67,7 @@ namespace PrjOutbound.Controllers
                     c.FldId = Convert.ToInt32(row["iMasterId"]);
                     c.FldName = Convert.ToString(row["sName"]);
                     c.FldCode = Convert.ToString(row["sCode"]);
+                    c.FldType = 2;
                     isGroup = Convert.ToInt32(row["bGroup"]);
                     CreatedDate = Convert.ToInt64(row["iCreatedDate"]);
                     ModifiedDate = Convert.ToInt64(row["iModifiedDate"]);

@@ -22,6 +22,7 @@ namespace PrjOutbound.Models
             public string FldName { get; set; }
             public long CreatedDate { get; set; }
             public long ModifiedDate { get; set; }
+            public int FldType { get; set; }
         }
 
         public class Result

@@ -87,6 +87,7 @@ namespace PrjOutbound.Controllers
                         c.FldCode = Convert.ToString(row["sCode"]);
                         c.CreatedDate = Convert.ToInt64(row["iCreatedDate"]);
                         c.ModifiedDate = Convert.ToInt64(row["iModifiedDate"]);
+                        c.FldType = 2;
                         lc.Add(c);
                     }
                     clist.ItemList = lc;
@@ -481,6 +482,110 @@ namespace PrjOutbound.Controllers
             Session["TextData"] = msg.ToString();
             return Json(new { success = "1" }, JsonRequestBehavior.AllowGet);
             //return Json(new { isStatus = isStatus }, JsonRequestBehavior.AllowGet);
+        }
+        public ActionResult CustomerCategoryPosting(int CompanyId)
+        {
+            StringBuilder msg = new StringBuilder();
+            int strdate = GetDateToInt(DateTime.Now);
+            bool isStatus = false;
+            AccessToken = GetAccessToken();
+            #region PostedStatusZero
+            try
+            {
+                if (AccessToken == "")
+                {
+                    Message = "Invalid Token";
+                    objreg.SetErrorLog("MenuCustCategoryFailed.log", "Invalid Token");
+                    msg.AppendLine();
+                    msg.Append(DateTime.Now.ToString() + ": " + "Invalid Token" + " \n ");
+                    var sMessage = "Token Should not be Empty";
+                    objreg.SetErrorLog("MenuCustCategoryFailed.log", sMessage);
+                    msg.AppendLine();
+                    msg.Append(DateTime.Now.ToString() + ": " + sMessage + " \n ");
+                    return Json(new { success = "1" }, JsonRequestBehavior.AllowGet);
+                }
+
+                MenuCategory.CategoryList clist = new MenuCategory.CategoryList();
+                clist.AccessToken = AccessToken;
+                clist.ObjectType = "category";
+                string sql = $@"select ic.iMasterId,sName,sCode,iCreatedDate,iModifiedDate from mCore_CustomerCategory ic join muCore_CustomerCategory muic on ic.iMasterId=muic.iMasterId where ic.iMasterId<>0 and iStatus<>5 and bGroup=0";
+                DataSet ds = objreg.GetData(sql, CompanyId, ref errors1);
+                List<MenuCategory.Category> lc = new List<MenuCategory.Category>();
+                if (ds == null || ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
+                {
+                    Message = "No Data Found for PostedStatusZero";
+                    msg.AppendLine();
+                    msg.Append(DateTime.Now.ToString() + ": " + Message + " \n ");
+                }
+                else
+                {
+                    foreach (DataRow row in ds.Tables[0].Rows)
+                    {
+                        MenuCategory.Category c = new MenuCategory.Category();
+                        c.FldId = Convert.ToInt32(row["iMasterId"]);
+                        c.FldName = Convert.ToString(row["sName"]);
+                        c.FldCode = Convert.ToString(row["sCode"]);
+                        c.CreatedDate = Convert.ToInt64(row["iCreatedDate"]);
+                        c.ModifiedDate = Convert.ToInt64(row["iModifiedDate"]);
+                        c.FldType = 1;
+                        lc.Add(c);
+                    }
+                    clist.ItemList = lc;
+
+                    if (clist.ItemList.Count() > 0)
+                    {
+                        #region PostingSection
+
+                        var sContent = new JavaScriptSerializer().Serialize(clist);
+                        using (WebClient client = new WebClient())
+                        {
+                            client.Headers.Add("Content-Type", "application/json");
+                            objreg.SetSuccessLog("MenuCustCategory.log", "New Posted sContent: " + sContent);
+                            msg.AppendLine();
+                            msg.Append(DateTime.Now.ToString() + ": " + " New Posted sContent: " + sContent + " \n ");
+                            objreg.SetLog("MenuCustCategory.log", " PostingURL :" + PostingURL);
+                            var arrResponse = client.UploadString(PostingURL, sContent);
+                            var lng = JsonConvert.DeserializeObject<MenuCategory.Result>(arrResponse);
+
+                            if (lng.ResponseStatus.IsSuccess == true)
+                            {
+                                isStatus = true;
+                                objreg.SetLog("MenuCustCategory.log", " Posted Successfully");
+                                msg.AppendLine();
+                                msg.Append(DateTime.Now.ToString() + ": " + " Posted Successfully \n ");
+                            }
+                            else
+                            {
+                                int ErrorListCount = lng.ErrorMessages.Count();
+                                if (ErrorListCount > 0)
+                                {
+                                    var ErrorList = lng.ErrorMessages.ToList();
+                                    foreach (var item in ErrorList)
+                                    {
+                                        msg.AppendLine();
+                                        msg.Append(DateTime.Now.ToString() + ": " + " ErrorList Message for Account Master with Posted status as 0 :- " + item + " \n ");
+                                        objreg.SetErrorLog("MenuCustCategory.log", "ErrorList Message for Account Master with Posted status as 0 :- " + item);
+                                    }
+                                }
+                            }
+                        }
+
+                        #endregion
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                isStatus = false;
+                errors1 = e.Message;
+                Message = e.Message;
+                objreg.SetErrorLog("MenuCustCategoryFailed.log", " Error 1 :" + errors1);
+                msg.AppendLine();
+                msg.Append(DateTime.Now.ToString() + ": " + " Error 1 :" + errors1 + " \n ");
+            }
+            #endregion
+            Session["TextData"] = msg.ToString();
+            return Json(new { success = "1" }, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult UnitPosting(int CompanyId)
@@ -1466,11 +1571,11 @@ namespace PrjOutbound.Controllers
                         c.FldBranchId = 0;
                         c.FldCategoryId = Convert.ToInt32(row["CustomerCategory"]);
                         c.FldActivityId = Convert.ToString(row["ActivityCode"]);
-                        c.FldAdminAreaId = Convert.ToString(row["CityCode"]);
+                        //c.FldAdminAreaId = Convert.ToString(row["CityCode"]);
                         c.FldWorkingAreaCode = Convert.ToString(row["WorkingArea"]);
                         c.FldPriceBookId = 3;
                         c.FldCurrencyId = 7;
-                        c.FldRouteId = null;
+                        //c.FldRouteId = null;
                         lc.Add(c);
                     }
                     clist.ItemList = lc;
@@ -4426,6 +4531,32 @@ namespace PrjOutbound.Controllers
                     System.IO.File.WriteAllText(path, ValidationMessage);
                     byte[] bytes = System.IO.File.ReadAllBytes(path);
                     return File(bytes, "application/text", "MenuWorkingAreaLog.txt");
+                }
+            }
+            return null;
+        }
+        [HttpPost]
+        public ActionResult CustCategoryFileDownload()
+        {
+            string ValidationMessage = Session["TextData"].ToString();
+            if (!string.IsNullOrEmpty(ValidationMessage))
+            {
+                string path = @"C:\Windows\Temp\MenuCustCategoryLog.txt";
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.WriteAllText(path, ValidationMessage);
+                    byte[] bytes = System.IO.File.ReadAllBytes(path);
+                    return File(bytes, "application/text", "MenuCustCategoryLog.txt");
+                }
+                else
+                {
+                    FileInfo fi = new FileInfo(path);
+                    StreamWriter sw = fi.CreateText();
+                    sw.Close();
+
+                    System.IO.File.WriteAllText(path, ValidationMessage);
+                    byte[] bytes = System.IO.File.ReadAllBytes(path);
+                    return File(bytes, "application/text", "MenuCustCategoryLog.txt");
                 }
             }
             return null;

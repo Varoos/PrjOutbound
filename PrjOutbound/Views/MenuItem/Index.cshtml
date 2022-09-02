@@ -158,6 +158,14 @@
                         <button type="button" class="btn btn-primary" id="btnWorkinArea" name="Load">POST</button>
                     </td>
                 </tr>
+                <tr>
+                    <td>
+                        <label id="lblCC">Customer Category</label>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary" id="btnCC" name="Load">POST</button>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -519,7 +527,29 @@
                 }
             });
         });
-
+        $('#btnCC').click(function (e) {
+            debugger
+            $("#progress").show();
+            $.ajax({
+                url: '/PrjOutbound/MenuItem/CustomerCategoryPosting',
+                type: "POST",
+                dataType: "json",
+                data: { "CompanyId":compId },
+                success: function (response) {
+                    debugger
+                    $("#progress").hide();
+                    if (response.success == "1") {
+                        alert("Please Check the Working Area log file below");
+                        var form = $('<form></form>').attr('action', '@Url.Action("CustCategoryFileDownload", "MenuItem")').attr('method', 'post');
+                        form.appendTo('body').submit().remove();
+                    }
+                },
+                error:function(err){
+                    console.log(err)
+                    $("#progress").hide();
+                }
+            });
+        });
 
 
     </script>
