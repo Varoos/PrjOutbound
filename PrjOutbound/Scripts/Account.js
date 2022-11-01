@@ -77,7 +77,7 @@ function WAAfterSaveFn() {
 function WAAfterSaveCallBack(response) {
     debugger;
     companyId = response.data.CompanyId;
-    Focus8WAPI.getFieldValue("AcSaveCallback", ["sCode"], 1, false, 111);
+    Focus8WAPI.getFieldValue("WAAcSaveCallback", ["sCode"], 1, false, 111);
 }
 
 function WAAcSaveCallback(response1) {
